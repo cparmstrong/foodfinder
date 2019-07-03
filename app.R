@@ -11,30 +11,6 @@ source("C:/Users/carmst18/Desktop/CPA_JHU_CRRE/R/goog_key.R")
 set_key(key = goog_key)
 # google_keys()
 
-
-
-
-
-
-
-# x <- google_places(search_string = "tacos highlandtown baltimore",
-#               radius = 10000,
-#               place_type = "restaurant",
-#               key = goog_key)              
-# 
-# y <- google_place_details(place_id = x$results$place_id[1], key = goog_key)
-# y <- y$results
-# View(as.data.frame(y$results))
-
-# sites <- data.frame(matrix(ncol = 2, nrow = 0))
-# for(i in seq_along(sites$cutvark))
-#     temp <- google_place_details(place_id = y$results$place_id[i], key = goog_key)
-#     temp <- data.frame(place_id = temp$result$place_id, 
-#                        website  = temp$result$website) 
-#     sites <- rbind(sites, unlist(temp))
-# } 
-
-
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
@@ -55,6 +31,10 @@ ui <- fluidPage(
                 # for now just add city to search
                 # in future, search google for the address (does that even make sense?)
                 # possible to have user drop pin on map?
+            ),
+            actionButton(
+                inputId = "update",
+                label   = "Update"
             ),
             sliderInput(
                 inputId = "radius",
@@ -78,10 +58,6 @@ ui <- fluidPage(
                 min     = 0, 
                 max     = 2000,  # make this dynamic based on results
                 value   = 10
-            ),
-            actionButton(
-                inputId = "update",
-                label   = "Update"
             )
         ),
 
@@ -95,7 +71,9 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
-    
+    # https://stackoverflow.com/questions/53016404/advantages-of-reactive-vs-observe-vs-observeevent
+    # do query in event reactive for keywords, location, radius
+    # do filter (reviews/rating) in observe
     
     
     results <- eventReactive(input$update, {
@@ -107,6 +85,10 @@ server <- function(input, output) {
                                place_type = "restaurant", # maybe open this up in the future? ; food, meal_takeaway, bar
                                # price, opennow, 
                                key = goog_key)
+    })
+    
+    data <- observe({
+
         
         results <- query$results %>%
             select(formatted_address, # geometry.location.lat, geometry.location.lng,
@@ -114,38 +96,43 @@ server <- function(input, output) {
                    place_id) %>%
             filter(rating > input$rating,
                    user_ratings_total > input$reviews)   # add distance subset
-        
-        
-        # sites <- data.frame(matrix(ncol = 2, 
-        sites <- results %>%  
-            select(place_id)# %>%
-            # mutate()
-        for(i in seq_along(sites$place_id)) {
-            temp <- google_place_details(place_id = sites$place_id[i], key = goog_key)
             
-            if(!is.null(temp$result$website)) {
-                sites[i,"website"] <- temp$result$website
-                sites[i,"website"] <- paste0("<a href='",
-                                             temp$result$website,
-                                             "'>",
-                                             temp$result$website,
-                                             "</a>")
+            
+            # sites <- data.frame(matrix(ncol = 2, 
+            sites <- results %>%  
+                select(place_id)# %>%
+                # mutate()
+            for(i in seq_along(sites$place_id)) {
+                temp <- google_place_details(place_id = sites$place_id[i], key = goog_key)
                 
-                }
-            sites[i,"url"] <- temp$result$url
-            sites[i,"lat"] <- temp$result$geometry$location$lat
-            sites[i,"lng"] <- temp$result$geometry$location$lng
-        }
-
-        out <- merge(results, sites, by = c("place_id"))
-        
-        out
-        
-    })
-    output$table_results <- renderDataTable({out})
+                if(!is.null(temp$result$website)) {
+                    sites[i,"website"] <- temp$result$website
+                    sites[i,"website"] <- paste0("<a href='",
+                                                 temp$result$website,
+                                                 "'>",
+                                                 temp$result$website,
+                                                 "</a>")
+                    # why isn't the link update working
+                    }
+                sites[i,"url"] <- temp$result$url
+                sites[i,"lat"] <- temp$result$geometry$location$lat
+                sites[i,"lng"] <- temp$result$geometry$location$lng
+            }
     
-    # output$table_deets <- renderDataTable({deets()})
-    # output$n_results <- nrow(results())
+            full <- merge(results, sites, by = c("place_id"))
+            
+            show <- full %>% 
+                select(name, formatted_address, 
+                       rating, user_ratings_total,
+                       website)
+                
+            
+            # out
+            output$table_results <- renderDataTable({show})  # how does this work? 
+            
+            })
+    
+    # output$n_results <- nrow(out)
 
     
 }
