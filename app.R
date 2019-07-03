@@ -91,21 +91,11 @@ server <- function(input, output) {
 
         
         results <- query$results %>%
-            # select(formatted_address, # geometry.location.lat, geometry.location.lng,
-            #        name, price_level, rating, user_ratings_total, 
-            #        place_id) %>%
             filter(rating > input$rating,
                    user_ratings_total > input$reviews)   # add distance subset
-        # this is kinda redundant since the last step is a select to get the cols in order
-        # the filter is useful before oging into the next step but the select doesn't do much
-        # commenting it out didn't break anything so we'lll leave it out for now
-        #  still haven't gotten sliders to be truly reactive
-            
-            
-            # sites <- data.frame(matrix(ncol = 2, 
+    
             sites <- results %>%  
                 select(place_id)# %>%
-                # mutate()
             for(i in seq_along(sites$place_id)) {
                 temp <- google_place_details(place_id = sites$place_id[i], key = goog_key)
                 
@@ -132,7 +122,8 @@ server <- function(input, output) {
                 
             
             # out
-            output$table_results <- renderDataTable({show})  # how does this work? 
+            output$table_results <- renderDataTable({show}, 
+                                                    escape = FALSE)  # how does this work? 
             
             })
     
