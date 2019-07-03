@@ -132,11 +132,16 @@ server <- function(input, output) {
                                                     escape = FALSE)  # how does this work? 
             
             output$themap <- renderLeaflet({
-                m <- leaflet() %>%
+                m <- leaflet(data = full) %>%
                     addTiles() %>%
-                    setView(lng = sites$lng[i],  # this isnt great bc it searches relative to closesst place latlong not your latlong
-                            lat = sites$lat[i],
-                            zoom=10)
+                    setView(lng  = sites$lng[i],  
+                            # bad bc search isrelative to closesst place latlong
+                            # better search: fetch latlong of search_query/location
+                            lat  = sites$lat[i],
+                            zoom = 13) %>%  # make this dynamic & dependent on radius
+                    addMarkers(lng = ~lng,
+                               lat = ~lat,
+                               popup = paste(show$Name))
                 m
             })
             
