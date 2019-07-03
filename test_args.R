@@ -1,6 +1,13 @@
 
 
-source("C:/Users/carmst18/Desktop/CPA_JHU_CRRE/R/goog_key.R")
+
+if(push = FALSE) {
+  
+  source("C:/Users/carmst18/Desktop/CPA_JHU_CRRE/R/goog_key.R")
+  
+}
+
+
 input <- list()
 input$keywords <- "tacos"
 input$location <- "highlandtown baltimore"

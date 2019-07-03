@@ -1,0 +1,10 @@
+name: foodfinder
+title:
+username:
+account: cparmstrong
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1009687
+bundleId: 2195893
+url: https://cparmstrong.shinyapps.io/foodfinder/
+when: 1562123812.97768

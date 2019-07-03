@@ -3,10 +3,12 @@
 # install.packages("shiny")
 library(dplyr)
 library(googleway)
+library(leaflet)
 library(shiny)
 
 
-source("C:/Users/carmst18/Desktop/CPA_JHU_CRRE/R/goog_key.R")
+source("C:/Users/carmst18/Desktop/CPA_JHU_CRRE/R/goog_key.R"); print("you have to comment out the line that source the key to get it to deploy to shiny successfully; see https://gist.github.com/derzorngottes/3b57edc1f996dddcab25 to fix")
+
 # key <- goog_key
 set_key(key = goog_key)
 # google_keys()
@@ -63,6 +65,7 @@ ui <- fluidPage(
 
         # Show a plot of the generated distribution
         mainPanel(
+            leafletOutput("themap"),
             # h1(textOutput("n_results")),  # why is this not working
             dataTableOutput("table_results")#,
             # dataTableOutput("table_deets")
@@ -106,8 +109,9 @@ server <- function(input, output) {
                                                  "'>",
                                                  temp$result$website,
                                                  "</a>")
-                    # why isn't the link update working
-                    }
+                    # links working; change to be just a "button" (all the same text (="Link"))
+                    # create backup search if is.null(website)
+                }
                 sites[i,"url"] <- temp$result$url
                 sites[i,"lat"] <- temp$result$geometry$location$lat
                 sites[i,"lng"] <- temp$result$geometry$location$lng
@@ -116,20 +120,34 @@ server <- function(input, output) {
             full <- merge(results, sites, by = c("place_id"))
             
             show <- full %>% 
-                select(name, formatted_address, 
-                       rating, user_ratings_total,
-                       website)
+                select(Name    = name, 
+                       Address = formatted_address,  # can this be a link?
+                       Rating  = rating, 
+                       Reviews = user_ratings_total,
+                       Link    = website)
                 
             
             # out
             output$table_results <- renderDataTable({show}, 
                                                     escape = FALSE)  # how does this work? 
             
+            output$themap <- renderLeaflet({
+                m <- leaflet() %>%
+                    addTiles() %>%
+                    setView(lng = sites$lng[i],  # this isnt great bc it searches relative to closesst place latlong not your latlong
+                            lat = sites$lat[i],
+                            zoom=10)
+                m
             })
-    
-    # output$n_results <- nrow(out)
-
+            
+            
+            })
+  
     
 }
 
 shinyApp(ui = ui, server = server)
+
+
+# deploy to shinyapps.io
+# rsconnect::deployApp("C:/Users/carmst18/Desktop/CPA_JHU_CRRE/R/foodfinder")
