@@ -1,3 +1,12 @@
+
+
+# pull render table and render lefalet outside of the observe()
+# reactiveEvent should run just updating the keyword terms
+# observe shoudl control the slider based filtering
+# need two dataframes: the one to pull from andl the one to show
+
+
+
 # install.packages("dplyr")
 # install.packages("googleway")
 # install.packages("shiny")
@@ -67,8 +76,13 @@ ui <- fluidPage(
         mainPanel(
             leafletOutput("themap"),
             # h1(textOutput("n_results")),  # why is this not working
-            dataTableOutput("table_results")#,
+            dataTableOutput("table_results"),
             # dataTableOutput("table_deets")
+            # tags$h4("https://github.com/cparmstrong//R/foodfinder.git"),
+            tags$ul(
+                tags$li('what are the continuing features'))
+                
+            
         )
     )
 )
@@ -92,7 +106,6 @@ server <- function(input, output) {
     
     data <- observe({
 
-        
         results <- query$results %>%
             filter(rating > input$rating,
                    user_ratings_total > input$reviews)   # add distance subset
@@ -144,12 +157,9 @@ server <- function(input, output) {
                                popup = paste(show$Name))
                 m
             })
-            
-            
-            })
-  
-    
+    })
 }
+
 
 shinyApp(ui = ui, server = server)
 
